@@ -1,92 +1,86 @@
 # Closet Lab
 
-An Eleventy blog, deployed on Cloudflare Pages.
+An [Eleventy](https://www.11ty.dev/) blog on Cloudflare Pages. Push to `main` and it
+builds.
 
 ## Write
 
-The posts are markdown files on the tower at `~/blog/src/posts/`. Reach them however you
-like:
-
-- **Over SMB** — `\\tower\vinny\blog\src\posts\` and open in any editor
-- **Over SSH** — `ssh tower` and edit in place
-
-There are **28 drafts already waiting**, one per course module, named `module-<unit>.md`.
-Each carries its own brief in front matter — the angle, the evidence to capture, the
-honest part, what to redact — taken from that module's `## Post` section. **None of them
-contains a word of prose written for you.** The body is empty on purpose.
-
-To write one:
-
-1. Open `src/posts/module-0.1.md`
-2. Write the body under the headings
-3. Set `date:` and `summary:`
-4. Delete `draft: true`
-5. `./publish.sh "the UPS post"`
-
-The `brief:` block is front matter, so it never renders and can be left in or deleted.
-
-Regenerate the queue after editing a module's brief:
-
 ```bash
-~/mariko/venv/bin/python ~/mariko/scripts/brief_to_drafts.py
+git clone git@github.com:vinnybouchard/closet-lab.git
+cd closet-lab
+npm install
+npm start          # http://localhost:8080, live reload while you write
 ```
 
-It **never touches a draft whose body you have written** — only the untouched ones are
-refreshed.
+Posts are markdown in `src/posts/`. **28 drafts are already there**, one per module of
+the course this blog documents, named `module-<unit>.md`. Each carries its own brief in
+front matter — the angle, the evidence to capture, the honest part, what to redact — and
+an empty body. None of them contains prose written for you.
 
-For a post that is not a course module, `cp src/posts/_template.md
-"src/posts/$(date +%F)-slug.md"`.
-
-Front matter: `title`, `date`, `topic` (drives the filter strip and the topic pages),
-`summary`, optional `cover`, `series`, and `draft: true`.
-
-**`draft: true` means the page is not written at all** — not written-but-unlinked. An
-unlisted page is still a public URL.
-
-### One rule
-
-Edit on the tower, not in GitHub's web UI. `publish.sh` commits and pushes from here, so
-a web edit makes the two diverge and the next publish is rejected.
-
-## Preview
+To publish one: write the body, set `date:` and `summary:`, delete `draft: true`, then
 
 ```bash
-npx @11ty/eleventy --serve
+git add -A && git commit -m "the UPS post" && git push
 ```
 
-## Publish
+Or `./publish.sh "the UPS post"`, which is the same thing plus the leak check.
 
-```bash
-./publish.sh "a short message"
-```
+For a post that is not a course module:
+`cp src/posts/_template.md "src/posts/$(date +%F)-slug.md"`
 
-Runs the leak check, builds, commits and pushes. Cloudflare Pages builds from the push.
+### Front matter
 
-**The leak check is not optional and does not run in CI.** It lives on the machine that
-holds the evidence — the locator denylist and `.env` — because Cloudflare's build runners
-have neither, correctly, so a check wired there would silently never fire. It gates the
-boundary crossing rather than the render.
+| field | | |
+|---|---|---|
+| `title` | required | The headline. Rendered as the H1 — do not also write `# Title`. |
+| `date` | required | `2026-09-14`. Sorts the index; a malformed one refuses the build. |
+| `draft` | | `true` means the page is **not written at all**. Delete to publish. |
+| `topic` | optional | Drives the kicker, the filter strip and the topic page. |
+| `summary` | optional | One sentence — index card and standfirst. |
+| `cover` | optional | `/assets/x.jpg`. Turns on the photo hero. |
+| `series` | optional | Printed up the side of the hero. |
+
+A `tags:` line does nothing — the filter strip reads `topic`.
+
+There is a two-page markdown reference PDF covering what renders and what doesn't.
 
 ## Mariko's journal
 
-`/journal/` is her research notebook — `kind:"research"` notes she writes on her own
-initiative. Export them with:
+`/journal/` is the research notebook of the assistant that runs on the tower. Refresh it
+**from the tower**, where the data lives:
 
 ```bash
 ~/mariko/venv/bin/python ~/mariko/scripts/export_lab_notes.py
+cd ~/blog && ./publish.sh "new lab notes"
 ```
 
-It reads through the bot's own HTTP API and **never opens ChromaDB** — Chroma does not
-support concurrent multi-process access, so the single-writer rule means a second process
-must not open it even to read. **The bot must be running.**
+It reads through the bot's HTTP API and never opens ChromaDB, so the bot must be running.
+Entries are posted unedited; to leave one out, add its slug to
+`src/journal/.lab-notes-exclude` — omission, not editing.
 
-The export is one-way and idempotent: re-running overwrites, and an entry deleted
-upstream is pruned against a manifest. It publishes nothing on its own — the leak check
-and `publish.sh` still stand between the files and the internet.
+## The leak check
 
-The page says the entries are posted unedited, so they are. If there is one you would
-rather not publish, add its slug to `src/journal/.lab-notes-exclude` — **omission, not
-editing**, which is a different and honest thing.
+`tools/leakcheck.py` refuses to publish content carrying a locator or a credential.
+
+**Advisory, not a gate.** The script is only logic, so it lives here; what it checks
+against deliberately does not:
+
+- `.leakcheck` — locators, one per line, **git-ignored** and per-machine
+- credential values from an `.env`, found via `BLOG_ENV_FILE`, a sibling `.env`, or a
+  git-ignored `.env-path` naming one elsewhere
+
+With neither present it says so and exits 0 — refusing would make the workflow depend on
+a file that is meant to be absent. With a locator list it is strict, and it never prints a
+credential: a finding names the key.
+
+RFC1918 addresses are deliberately allowed. They mean nothing outside a LAN and scrubbing
+them makes the posts unreadable for no gain.
+
+## Cloudflare Pages
+
+- Build command: `npx @11ty/eleventy`
+- Output directory: `_site`
+- `NODE_VERSION` = `20`
 
 ## Design
 
@@ -96,41 +90,3 @@ From the "Home Lab Learning Journey" Claude Design project, which builds on Noct
 here Space Grotesk and IBM Plex Sans are served from this origin, so reading a page
 announces nothing to a third party and the strict CSP in `src/_headers` holds. Verified:
 the built output contains no third-party URLs at all.
-
-## Cloudflare Pages
-
-Two ways to deploy, and they are not equivalent.
-
-### Direct upload (default, `DEPLOY_MODE=direct`)
-
-The tower builds and wrangler uploads `_site`. **Cloudflare never sees the repo** — only
-the built output, which has already passed the leak check. Nothing in the dashboard needs
-access to GitHub.
-
-One-time, in the Cloudflare dashboard:
-
-1. **Workers & Pages → Create → Pages → Upload assets**, name it `closet-lab`, and
-   upload anything (or nothing) just to create the project. Alternatively, once the token
-   below exists: `npx wrangler pages project create closet-lab --production-branch main`.
-2. **My Profile → API Tokens → Create Token → Custom token** with the single permission
-   **Account → Cloudflare Pages → Edit**. Nothing else.
-3. Copy the token and your **Account ID** (right-hand side of any dashboard page).
-
-Then add to `~/mariko/.env` — not to this repo:
-
-```
-CLOUDFLARE_API_TOKEN=...
-CLOUDFLARE_ACCOUNT_ID=...
-```
-
-`publish.sh` reads them from there, parsed as text and exported for the one command.
-
-### Git integration (`DEPLOY_MODE=git`)
-
-Connect the repo in the dashboard and Cloudflare builds on every push:
-
-- Build command: `npx @11ty/eleventy`
-- Output directory: `_site`
-- Node: 20+ (set `NODE_VERSION=20` if the default is older)
-
-The cost is that Cloudflare gets **read access to the repository**, not just the output.
