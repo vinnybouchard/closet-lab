@@ -1,0 +1,237 @@
+/* Closet Lab — from the "Home Lab Learning Journey" Claude Design project,
+   which builds on Nocturne. Translated from the canvas prototype's inline
+   styles into real classes.
+
+   Fonts are SELF-HOSTED. Both the design and Nocturne itself pull Inter,
+   Space Grotesk and IBM Plex Sans from fonts.googleapis.com; here they are
+   served from this origin, so reading a page announces nothing to a third
+   party and the strict CSP in _headers holds. Same reason the disc wiki
+   self-hosts Inter. */
+
+@font-face{font-family:"Space Grotesk";src:url(/assets/fonts/space-grotesk-400.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Space Grotesk";src:url(/assets/fonts/space-grotesk-500.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Sans";src:url(/assets/fonts/plex-sans-400.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"IBM Plex Sans";src:url(/assets/fonts/plex-sans-500.woff2) format("woff2");font-weight:500;font-style:normal;font-display:swap}
+
+:root{
+  --color-bg:#131313; --color-surface:#1c1c1b; --color-text:#ebe8e1;
+  --color-accent:#e3a85a;
+  --color-divider:color-mix(in srgb,#ebe8e1 14%,transparent);
+  --color-neutral-100:#f3f1ec; --color-neutral-200:#e2dfd8; --color-neutral-300:#c9c5bc;
+  --color-neutral-400:#a9a59c; --color-neutral-500:#86827a; --color-neutral-600:#67645d;
+  --color-neutral-700:#4c4a45; --color-neutral-800:#353330; --color-neutral-900:#232221;
+  --color-accent-300:#f0d09b; --color-accent-400:#eabd76; --color-accent-500:#e3a85a;
+  --color-accent-600:#b98443; --color-accent-800:#5f4322;
+  --color-section:#2c2116;
+  --font-heading:"Space Grotesk",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans",system-ui,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --radius-sm:4px; --radius-md:8px;
+  --shadow-sm:0 0 0 1px #353330;
+  --shadow-md:0 0 0 1px #4c4a45,0 6px 18px rgba(0,0,0,.55);
+  --wrap:1200px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--color-bg);color:var(--color-text);
+  font-family:var(--font-body);font-size:15px;line-height:1.55;overflow-x:hidden}
+a{color:var(--color-accent);text-decoration:none}
+a:hover{color:var(--color-accent-400)}
+img{display:block;max-width:100%}
+::selection{background:color-mix(in srgb,var(--color-accent) 30%,transparent)}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 32px}
+
+/* Nocturne's signature: a freestanding rule fades out at both ends. */
+.rule{height:1px;background:linear-gradient(to right,transparent,
+  var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)}
+.lighten{mix-blend-mode:lighten;background-color:transparent}
+
+/* — masthead — */
+.top{display:flex;align-items:center;gap:20px;padding:22px 0 18px;font-size:13px}
+.top .brand{color:var(--color-text);font-family:var(--font-heading);font-weight:500;
+  font-size:15px;letter-spacing:.02em;white-space:nowrap}
+.top .spacer{flex:1;height:1px;background:linear-gradient(to right,transparent,
+  var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)}
+.top .strap{color:var(--color-neutral-500);white-space:nowrap}
+
+/* — strips: the nav and the topic filter share one mechanism — */
+.strip{display:grid;background:var(--color-surface);box-shadow:var(--shadow-sm);overflow:hidden}
+.strip.top-strip{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
+.strip.bottom-strip{border-radius:0 0 var(--radius-sm) var(--radius-sm)}
+.strip a,.strip span{display:flex;justify-content:center;align-items:center;gap:8px;
+  padding:12px 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--color-neutral-300);text-align:center}
+.strip>*+*{border-left:1px solid var(--color-divider)}
+.strip a:hover{background:var(--color-neutral-900);color:var(--color-neutral-100)}
+.strip a[aria-current="page"]{color:var(--color-neutral-100);background:var(--color-neutral-800)}
+.strip a[aria-current="page"]:hover{background:var(--color-neutral-700)}
+.strip .n{color:var(--color-neutral-500);letter-spacing:0}
+
+/* — hero — */
+.hero{position:relative;overflow:hidden;background:var(--color-surface)}
+.hero.index{height:540px}
+.hero.post{height:420px}
+/* The design is photo-led: every hero has an image slot. With no photo the same
+   height is a wall of empty ground, so a hero without one collapses to the height
+   its text actually needs and drops the scrim it no longer has anything to darken. */
+.hero.nophoto{height:auto;min-height:0;background:transparent;padding:64px 0 30px}
+.hero.nophoto .scrim,.hero.nophoto .rail{display:none}
+.hero.nophoto .plate{position:static;left:auto;right:auto;bottom:auto;padding:0}
+.hero.nophoto .ghost{display:none}
+.hero .art{position:absolute;inset:0}
+.hero .art img{width:100%;height:100%;object-fit:cover}
+.hero .scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,
+  color-mix(in srgb,var(--color-bg) 88%,transparent),
+  color-mix(in srgb,var(--color-bg) 28%,transparent) 48%,
+  color-mix(in srgb,var(--color-bg) 50%,transparent))}
+.hero .rail{position:absolute;left:28px;top:32px;bottom:32px;pointer-events:none;
+  display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+.hero .rail span.t{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10.5px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--color-neutral-400)}
+.hero .rail .line{width:1px;flex:1;margin:16px 0;
+  background:linear-gradient(to bottom,transparent,var(--color-divider),transparent)}
+.hero .plate{position:absolute;left:80px;right:80px;bottom:44px;pointer-events:none;
+  display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.hero h1{margin:0;font-family:var(--font-heading);font-weight:500;
+  font-size:clamp(36px,6vw,72px);letter-spacing:.28em;text-transform:uppercase;
+  line-height:1;color:var(--color-neutral-100)}
+.hero.post h1{font-size:clamp(30px,4.2vw,50px);letter-spacing:-.02em;line-height:1.08;
+  text-transform:none;max-width:720px;text-wrap:pretty}
+.hero .lede{margin:0;max-width:520px;font-size:15px;line-height:1.6;
+  color:var(--color-neutral-300);text-wrap:pretty}
+.kicker{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--color-accent)}
+
+/* the oversized watermark word */
+.ghost{position:absolute;pointer-events:none;user-select:none;font-family:var(--font-heading);
+  font-weight:500;line-height:1;letter-spacing:-.04em;
+  color:color-mix(in srgb,var(--color-text) 5%,transparent)}
+
+/* — section headings — */
+.sec-head{display:flex;align-items:baseline;gap:14px;position:relative}
+.sec-head h2{margin:0;font-family:var(--font-heading);font-weight:500;font-size:18px;
+  letter-spacing:.28em;text-transform:uppercase;color:var(--color-neutral-100)}
+.sec-head .sub{font-size:18px;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--color-neutral-600)}
+
+/* — post cards — */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2px}
+.pcard{position:relative;display:block;height:440px;overflow:hidden;
+  background:var(--color-surface);color:var(--color-text)}
+.pcard .art{position:absolute;inset:0}
+.pcard .art img{width:100%;height:100%;object-fit:cover}
+.pcard .scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,
+  color-mix(in srgb,var(--color-bg) 92%,transparent),
+  color-mix(in srgb,var(--color-bg) 40%,transparent) 50%,transparent)}
+.pcard .topic{position:absolute;left:18px;bottom:150px;pointer-events:none;
+  writing-mode:vertical-rl;transform:rotate(180deg);font-size:10.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--color-neutral-300)}
+.pcard .foot{position:absolute;left:18px;right:18px;bottom:22px;pointer-events:none;
+  display:flex;flex-direction:column;gap:8px}
+.pcard .date{font-size:11px;color:var(--color-neutral-500);letter-spacing:.02em}
+.pcard .title{font-family:var(--font-heading);font-weight:500;font-size:18px;
+  line-height:1.25;letter-spacing:-.01em;color:var(--color-neutral-100);text-wrap:pretty}
+
+/* — the older-posts list — */
+.rows{display:flex;flex-direction:column;margin-top:16px}
+.rows a{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:24px;
+  align-items:baseline;padding:18px 0;color:var(--color-text);
+  background:linear-gradient(to right,transparent,var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px),transparent) no-repeat top/100% 1px}
+.rows a:hover{color:var(--color-accent-400)}
+.rows .date{font-size:12px;color:var(--color-neutral-500)}
+.rows .title{font-family:var(--font-heading);font-weight:500;font-size:16px;
+  line-height:1.3;min-width:0}
+.rows .topic{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--color-neutral-500)}
+.more{margin-top:22px;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+
+/* — article — */
+.article-grid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:64px;
+  padding:64px 0 0 80px;align-items:start}
+article{max-width:640px;min-width:0}
+article .standfirst{font-size:18px;line-height:1.6;color:var(--color-neutral-300);
+  margin:0 0 40px;text-wrap:pretty}
+.prose{font-size:16px;line-height:1.75;color:var(--color-neutral-200)}
+.prose>*{margin:0 0 20px}
+.prose h2{font-family:var(--font-heading);font-weight:500;font-size:15px;
+  letter-spacing:.24em;text-transform:uppercase;margin:44px 0 16px;
+  color:var(--color-neutral-100)}
+.prose h3{font-family:var(--font-heading);font-weight:500;font-size:17px;
+  margin:32px 0 12px;color:var(--color-neutral-100)}
+.prose ul,.prose ol{padding-left:1.3rem}
+.prose li{margin:.4rem 0}
+.prose blockquote{margin:8px 0;padding:4px 0 4px 20px;
+  border-left:2px solid var(--color-accent);color:var(--color-neutral-300)}
+.prose code{font-family:var(--font-mono);font-size:.88em;
+  background:var(--color-surface);padding:.12em .38em;border-radius:var(--radius-sm)}
+.prose pre{padding:16px 18px;border-radius:var(--radius-sm);background:var(--color-surface);
+  box-shadow:var(--shadow-sm);font-size:13px;line-height:1.6;overflow-x:auto;
+  color:var(--color-neutral-300);font-family:var(--font-mono)}
+.prose pre code{background:none;padding:0;font-size:inherit}
+.prose figure{margin:4px 0;display:flex;flex-direction:column;gap:8px}
+.prose figure img{width:100%;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)}
+.prose figcaption{font-size:12px;color:var(--color-neutral-500);line-height:1.5}
+.prose table{width:100%;border-collapse:collapse;font-size:14px}
+.prose th,.prose td{text-align:left;padding:.5rem .65rem;vertical-align:top;
+  border-bottom:1px solid var(--color-divider)}
+.prose th{color:var(--color-neutral-400);font-size:.86rem;font-weight:500;
+  letter-spacing:.02em}
+.tablewrap{overflow-x:auto}
+
+aside.rail{position:sticky;top:32px;display:flex;flex-direction:column;gap:32px;
+  font-size:13.5px;line-height:1.6}
+aside.rail .label{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--color-neutral-500)}
+aside.rail a{color:var(--color-neutral-300);display:block;margin-top:8px}
+aside.rail a:hover{color:var(--color-accent-400)}
+
+/* — prev / next — */
+.updown{margin:64px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
+.updown a{padding:28px 32px;background:var(--color-surface);display:flex;
+  flex-direction:column;gap:8px;color:var(--color-neutral-200)}
+.updown a:hover{background:var(--color-neutral-900);color:var(--color-accent-400)}
+.updown a.next{text-align:right}
+.updown .k{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--color-neutral-500)}
+.updown .v{font-family:var(--font-heading);font-weight:500;font-size:17px;line-height:1.3}
+
+/* — footer — */
+footer.bot{position:relative;margin-top:96px;padding:40px 0 48px;overflow:hidden;
+  background:linear-gradient(to right,transparent,var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px),transparent) no-repeat top/100% 1px}
+footer.bot .inner{position:relative;display:flex;justify-content:space-between;
+  align-items:flex-end;gap:24px;flex-wrap:wrap}
+footer.bot .name{font-family:var(--font-heading);font-weight:500;font-size:15px;
+  letter-spacing:.02em}
+footer.bot .note{font-size:12px;color:var(--color-neutral-500)}
+footer.bot nav{display:flex;gap:28px;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase}
+footer.bot nav a{color:var(--color-neutral-400)}
+footer.bot nav a:hover{color:var(--color-accent-400)}
+
+/* — responsive: the design is a 1200px canvas; these are the collapses — */
+@media(max-width:1000px){
+  .article-grid{grid-template-columns:minmax(0,1fr);gap:40px;padding:48px 0 0}
+  aside.rail{position:static}
+  .hero .plate{left:56px;right:32px}
+}
+@media(max-width:720px){
+  .strip{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .strip>*{border-left:1px solid var(--color-divider);
+    border-top:1px solid var(--color-divider)}
+  .hero.index{height:420px}
+  .hero.post{height:340px}
+  .hero .rail{display:none}
+  .hero .plate{left:24px;right:24px;bottom:28px}
+  .pcard{height:300px}
+  .rows a{grid-template-columns:minmax(0,1fr);gap:6px}
+  .rows .topic{justify-self:start}
+  .updown{grid-template-columns:minmax(0,1fr)}
+  .updown a.next{text-align:left}
+  .ghost{display:none}
+  .wrap{padding:0 18px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}

@@ -1,0 +1,15 @@
+{
+  "title": "Closet Lab",
+  "strap": "a home lab, learned in public",
+  "tagline": "Notes from a home lab I didn't know how to build. A tower in a closet, a Security+ course, and a setup I'm now taking apart to understand.",
+  "url": "https://closet-lab.pages.dev",
+  "author": "Vinny",
+  "language": "en",
+  "rails": { "left": "no certs · no IT job", "right": "est. 2026" },
+  "nav": [
+    { "text": "Posts", "url": "/" },
+    { "text": "The lab", "url": "/lab/" },
+    { "text": "Security+", "url": "/tags/security-plus/" },
+    { "text": "About", "url": "/about/" }
+  ]
+}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="{{ site.language }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>{% if title %}{{ title }} — {% endif %}{{ site.title }}</title>
+{%- if description or summary %}
+<meta name="description" content="{{ description or summary }}">{% endif %}
+<link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="/feed.xml">
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/space-grotesk-500.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/assets/fonts/plex-sans-400.woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="/">{{ site.title }}</a>
+    <span class="spacer"></span>
+    <span class="strap">{{ site.strap }}</span>
+  </header>
+
+  <nav class="strip top-strip" style="grid-template-columns:repeat({{ site.nav | length }},minmax(0,1fr))">
+    {%- for item in site.nav %}
+    <a href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.text }}</a>
+    {%- endfor %}
+  </nav>
+
+  {{ content | safe }}
+
+  <footer class="bot">
+    <div aria-hidden="true" class="ghost" style="left:-8px;bottom:-70px;font-size:220px;white-space:nowrap">the closet</div>
+    <div class="inner">
+      <div>
+        <div class="name">{{ site.title }}</div>
+        <div class="note">written by a person, not a cert</div>
+      </div>
+      <nav>
+        <a href="/feed.xml">RSS</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

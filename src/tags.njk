@@ -1,0 +1,29 @@
+---
+pagination:
+  data: collections.topics
+  size: 1
+  alias: topic
+permalink: "/tags/{{ topic.slug }}/"
+layout: base.njk
+eleventyComputed:
+  title: "{{ topic.name }}"
+---
+<main>
+  <section style="padding:56px 0 32px">
+    <span class="kicker">Topic</span>
+    <h1 style="margin:10px 0 0;font-family:var(--font-heading);font-weight:500;font-size:clamp(30px,4vw,46px);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-100)">{{ topic.name }}</h1>
+    <p style="margin:12px 0 0;color:var(--color-neutral-500)">{{ topic.posts | length }} post{% if (topic.posts | length) != 1 %}s{% endif %}</p>
+  </section>
+  <div class="rule"></div>
+  <div class="rows">
+    {%- for post in topic.posts %}
+    <a href="{{ post.url }}">
+      <span class="date">{{ post.date | readable }}</span>
+      <span class="title">{{ post.data.title }}</span>
+      <span class="topic">{{ post.data.topic }}</span>
+    </a>
+    {%- endfor %}
+    <div class="rule"></div>
+  </div>
+  <p class="more"><a href="/">← All posts</a></p>
+</main>

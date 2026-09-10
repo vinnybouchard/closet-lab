@@ -1,0 +1,58 @@
+---
+layout: base.njk
+---
+<main>
+  <section class="hero post{% if not cover %} nophoto{% endif %}">
+    {%- if cover %}
+    <div class="art lighten"><img src="{{ cover }}" alt="{{ coverAlt or '' }}"></div>
+    {%- endif %}
+    <div class="scrim"></div>
+    {%- if series %}
+    <div class="rail">
+      <span class="t">{{ series }}</span>
+      <span class="line"></span>
+    </div>
+    {%- endif %}
+    <div class="plate">
+      {%- if topic %}<span class="kicker">{{ topic }}</span>{% endif %}
+      <h1>{{ title }}</h1>
+    </div>
+  </section>
+
+  <div class="strip bottom-strip" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <span><time datetime="{{ page.date | iso }}">{{ page.date | readable }}</time></span>
+    <span>{{ content | readingTime }}</span>
+    <a href="/">← All posts</a>
+  </div>
+
+  <div class="article-grid">
+    <article>
+      {%- if summary %}<p class="standfirst">{{ summary }}</p>{% endif %}
+      <div class="prose">{{ content | safe }}</div>
+    </article>
+    <aside class="rail">
+      {%- set heads = content | headings %}
+      {%- if heads | length %}
+      <div>
+        <span class="label">In this post</span>
+        {%- for h in heads %}<a href="#{{ h.id }}">{{ h.text }}</a>{% endfor %}
+      </div>
+      {%- endif %}
+      {%- if series %}
+      <div>
+        <span class="label">Series</span>
+        <p style="margin:8px 0 0;color:var(--color-neutral-300)">{{ series }}</p>
+      </div>
+      {%- endif %}
+    </aside>
+  </div>
+
+  {%- set prev = collections.posts | getPreviousCollectionItem %}
+  {%- set next = collections.posts | getNextCollectionItem %}
+  {%- if prev or next %}
+  <div class="updown">
+    {%- if prev %}<a class="prev" href="{{ prev.url }}"><span class="k">← Previous</span><span class="v">{{ prev.data.title }}</span></a>{% else %}<span></span>{% endif %}
+    {%- if next %}<a class="next" href="{{ next.url }}"><span class="k">Next →</span><span class="v">{{ next.data.title }}</span></a>{% endif %}
+  </div>
+  {%- endif %}
+</main>

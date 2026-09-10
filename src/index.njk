@@ -1,0 +1,114 @@
+---
+layout: base.njk
+---
+{%- set posts = collections.posts %}
+{%- set latest = posts | first %}
+<main>
+
+  <section class="hero index{% if not site.heroImage %} nophoto{% endif %}">
+    {%- if site.heroImage %}
+    <div class="art lighten"><img src="{{ site.heroImage }}" alt=""></div>
+    {%- endif %}
+    <div class="scrim"></div>
+    <div aria-hidden="true" class="ghost" style="left:-6px;bottom:-40px;font-size:200px">closet</div>
+    <div class="rail">
+      <span class="t">{{ site.rails.left }}</span>
+      <span class="line"></span>
+      <span class="t">{{ site.rails.right }}</span>
+    </div>
+    <div class="plate">
+      <h1>{{ site.title }}</h1>
+      <p class="lede">{{ site.tagline }}</p>
+    </div>
+  </section>
+
+  {%- set topics = posts | topicCounts %}
+  {%- if topics | length %}
+  <nav class="strip bottom-strip" style="grid-template-columns:repeat({{ (topics | length) + 1 }},minmax(0,1fr))">
+    <a href="/" aria-current="page">All <span class="n">{{ posts | length }}</span></a>
+    {%- for t in topics %}
+    <a href="/tags/{{ t.slug }}/">{{ t.name }} <span class="n">{{ t.count }}</span></a>
+    {%- endfor %}
+  </nav>
+  {%- endif %}
+
+  {%- if latest %}
+  <section style="margin-top:28px;display:flex;flex-direction:column;border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-sm)">
+    <div style="position:relative;height:260px;background:var(--color-surface)">
+      {%- if latest.data.cover %}
+      <div class="art lighten" style="position:absolute;inset:0"><img src="{{ latest.data.cover }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+      {%- endif %}
+      <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,color-mix(in srgb,var(--color-bg) 80%,transparent),color-mix(in srgb,var(--color-bg) 30%,transparent) 60%,transparent)"></div>
+      <div style="position:absolute;left:36px;top:36px;right:36px;pointer-events:none;display:flex;flex-direction:column;gap:10px">
+        <span class="kicker">Latest</span>
+        <h2 style="margin:0;font-family:var(--font-heading);font-weight:500;font-size:clamp(24px,3vw,34px);line-height:1.15;letter-spacing:-.015em;max-width:480px;color:var(--color-neutral-100);text-wrap:pretty">{{ latest.data.title }}</h2>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+      <div style="padding:32px 36px;background:var(--color-surface);display:flex;flex-direction:column;gap:14px;min-height:200px">
+        <span style="font-size:12px;color:var(--color-neutral-500)">{{ latest.date | readable }}{% if latest.data.topic %} · {{ latest.data.topic }}{% endif %}</span>
+        <p style="margin:0;font-size:14px;line-height:1.65;color:var(--color-neutral-300);text-wrap:pretty;flex:1">{{ latest.data.summary }}</p>
+        <a href="{{ latest.url }}" style="align-self:flex-start;font-size:11px;letter-spacing:.18em;text-transform:uppercase">Read the post →</a>
+      </div>
+      {%- if site.stats %}
+      <div style="padding:32px 36px;background:var(--color-neutral-900);display:flex;flex-direction:column;gap:18px">
+        {%- for s in site.stats %}
+        <div>
+          <div style="font-family:var(--font-heading);font-weight:500;font-size:30px;line-height:1;color:var(--color-neutral-100)">{{ s.n }}</div>
+          <div style="font-size:12px;color:var(--color-neutral-400)">{{ s.label }}</div>
+        </div>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+      {%- if site.nowList %}
+      <div style="padding:32px 36px;background:var(--color-section);display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--color-neutral-300)">Right now</span>
+        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13.5px;line-height:1.5;color:var(--color-neutral-100)">
+          {%- for item in site.nowList %}
+          <li style="display:flex;gap:10px"><span style="color:var(--color-accent-400);flex:none">—</span>{{ item }}</li>
+          {%- endfor %}
+        </ul>
+      </div>
+      {%- endif %}
+    </div>
+  </section>
+  {%- endif %}
+
+  <section style="position:relative;margin-top:80px;display:flex;flex-direction:column;gap:28px">
+    <div aria-hidden="true" class="ghost" style="right:-10px;top:-70px;font-size:160px">posts</div>
+    <div class="sec-head"><h2>Posts</h2><span class="sub">newest first</span></div>
+
+    {%- set feature = posts | slice_(0, 4) %}
+    {%- set older = posts | slice_(4) %}
+    {%- if feature | length %}
+    <div class="cards">
+      {%- for post in feature %}
+      <a class="pcard" href="{{ post.url }}">
+        {%- if post.data.cover %}<div class="art lighten"><img src="{{ post.data.cover }}" alt=""></div>{% endif %}
+        <div class="scrim"></div>
+        {%- if post.data.topic %}<span class="topic">{{ post.data.topic }}</span>{% endif %}
+        <div class="foot">
+          <span class="date">{{ post.date | readable }}</span>
+          <span class="title">{{ post.data.title }}</span>
+        </div>
+      </a>
+      {%- endfor %}
+    </div>
+    {%- else %}
+    <p style="color:var(--color-neutral-500)">No posts yet.</p>
+    {%- endif %}
+
+    {%- if older | length %}
+    <div class="rows">
+      {%- for post in older %}
+      <a href="{{ post.url }}">
+        <span class="date">{{ post.date | readable }}</span>
+        <span class="title">{{ post.data.title }}</span>
+        <span class="topic">{{ post.data.topic }}</span>
+      </a>
+      {%- endfor %}
+      <div class="rule"></div>
+    </div>
+    {%- endif %}
+  </section>
+</main>
