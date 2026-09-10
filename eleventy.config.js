@@ -86,6 +86,28 @@ export default function (eleventyConfig) {
   });
 
   // One page per topic, from the same source as the counts.
+  // Mariko's Lab Notes, exported from her research notebook by
+  // mariko/scripts/export_lab_notes.py. Newest first.
+  eleventyConfig.addCollection("journal", (api) =>
+    api.getFilteredByGlob("src/journal/*.md")
+      .filter((p) => !p.data.draft)
+      .sort((a, b) => b.date - a.date)
+  );
+
+  eleventyConfig.addFilter("day", (d) =>
+    DateTime.fromJSDate(d, { zone: "utc" }).toFormat("dd"));
+  eleventyConfig.addFilter("mon", (d) =>
+    DateTime.fromJSDate(d, { zone: "utc" }).toFormat("LLL"));
+  // The time she actually wrote it, from the entry's own timestamp — not invented.
+  eleventyConfig.addFilter("clock", (iso) =>
+    iso ? DateTime.fromISO(iso, { zone: "utc" }).toFormat("HH:mm") : "");
+  // First paragraph, for the list. Trimmed on a word boundary.
+  eleventyConfig.addFilter("excerpt", (html, n) => {
+    const first = String(html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const max = n || 220;
+    return first.length <= max ? first : first.slice(0, max).replace(/\s+\S*$/, "") + "…";
+  });
+
   eleventyConfig.addCollection("topics", (api) => {
     const seen = new Map();
     for (const p of api.getFilteredByGlob("src/posts/*.md")) {

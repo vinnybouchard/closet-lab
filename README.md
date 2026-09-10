@@ -33,6 +33,27 @@ holds the evidence — the locator denylist and `.env` — because Cloudflare's 
 have neither, correctly, so a check wired there would silently never fire. It gates the
 boundary crossing rather than the render.
 
+## Mariko's journal
+
+`/journal/` is her research notebook — `kind:"research"` notes she writes on her own
+initiative. Export them with:
+
+```bash
+~/mariko/venv/bin/python ~/mariko/scripts/export_lab_notes.py
+```
+
+It reads through the bot's own HTTP API and **never opens ChromaDB** — Chroma does not
+support concurrent multi-process access, so the single-writer rule means a second process
+must not open it even to read. **The bot must be running.**
+
+The export is one-way and idempotent: re-running overwrites, and an entry deleted
+upstream is pruned against a manifest. It publishes nothing on its own — the leak check
+and `publish.sh` still stand between the files and the internet.
+
+The page says the entries are posted unedited, so they are. If there is one you would
+rather not publish, add its slug to `src/journal/.lab-notes-exclude` — **omission, not
+editing**, which is a different and honest thing.
+
 ## Design
 
 From the "Home Lab Learning Journey" Claude Design project, which builds on Nocturne.

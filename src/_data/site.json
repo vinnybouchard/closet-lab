@@ -5,11 +5,26 @@
   "url": "https://closet-lab.pages.dev",
   "author": "Vinny",
   "language": "en",
-  "rails": { "left": "no certs · no IT job", "right": "est. 2026" },
+  "rails": {
+    "left": "no certs \u00b7 no IT job",
+    "right": "est. 2026"
+  },
   "nav": [
-    { "text": "Posts", "url": "/" },
-    { "text": "The lab", "url": "/lab/" },
-    { "text": "Security+", "url": "/tags/security-plus/" },
-    { "text": "About", "url": "/about/" }
+    {
+      "text": "Posts",
+      "url": "/"
+    },
+    {
+      "text": "Mariko's journal",
+      "url": "/journal/"
+    },
+    {
+      "text": "Security+",
+      "url": "/tags/security-plus/"
+    },
+    {
+      "text": "About",
+      "url": "/about/"
+    }
   ]
 }

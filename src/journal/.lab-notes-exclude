@@ -1,0 +1,11 @@
+# Slugs NOT exported to the blog. Omission, not editing — the journal page promises the
+# entries are posted unedited, so anything you would rather not publish is left out
+# whole rather than quietly altered. One slug per line.
+#
+# Candidate flagged 2026-09-10, currently PUBLISHED — uncomment to omit:
+#
+# This one is labelled "Paper review" and reviews a LinkedIn post rather than a paper.
+# It is the entry that motivated papers.py's open-access full-text gate, so it is a real
+# artifact of how the system learned. It cites Sam Burrett by name and engages with his
+# public post on the merits. Publishing it is defensible; so is leaving it out.
+# 2026-08-04-thresholds-inside-the-loop

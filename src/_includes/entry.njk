@@ -1,0 +1,32 @@
+---
+layout: base.njk
+---
+<main>
+  <section class="hero post nophoto">
+    <div class="plate">
+      <span class="kicker">{{ kicker }}</span>
+      <h1>{{ title }}</h1>
+    </div>
+  </section>
+
+  <div class="strip bottom-strip" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+    <span><time datetime="{{ page.date | iso }}">{{ page.date | readable }}</time></span>
+    <span>{% if written %}written {{ written | clock }} UTC{% else %}Lab note{% endif %}</span>
+    <a href="/journal/">← All entries</a>
+  </div>
+
+  <div class="article-grid">
+    <article>
+      <div class="prose">{{ content | safe }}</div>
+      <p style="margin:48px 0 0;font-size:12px;color:var(--color-neutral-600)">
+        Written by Mariko on her own initiative. Posted unedited.
+      </p>
+    </article>
+    <aside class="rail">
+      <div>
+        <span class="label">Entry</span>
+        <p style="margin:8px 0 0;color:var(--color-neutral-300)">{{ kicker }}</p>
+      </div>
+    </aside>
+  </div>
+</main>
