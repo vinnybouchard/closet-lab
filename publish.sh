@@ -20,11 +20,19 @@ LEAKCHECK="${LEAKCHECK:-$HOME/mariko/scripts/blog_leakcheck.py}"
 PY="${PY:-$HOME/mariko/venv/bin/python}"
 MSG="${1:-publish}"
 
+# Debian's `nodejs` package ships WITHOUT npm or npx, so call the locally installed
+# binaries directly rather than through a launcher that may not exist.
+ELEVENTY="./node_modules/.bin/eleventy"
+WRANGLER="./node_modules/.bin/wrangler"
+for bin in "$ELEVENTY" "$WRANGLER"; do
+  [[ -x "$bin" ]] || { echo "missing $bin — run: corepack npm install" >&2; exit 2; }
+done
+
 echo "==> leak check"
 "$PY" "$LEAKCHECK" src/          # non-zero aborts, thanks to set -e
 
 echo "==> build"
-npx @11ty/eleventy
+"$ELEVENTY"
 
 echo "==> commit"
 if [[ -n "$(git status --porcelain)" ]]; then
@@ -48,7 +56,7 @@ case "$MODE" in
     fi
     export CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
     echo "==> deploy (direct upload — Cloudflare receives _site, not the repo)"
-    npx wrangler pages deploy _site --project-name="$PROJECT" --branch main --commit-dirty=true
+    "$WRANGLER" pages deploy _site --project-name="$PROJECT" --branch main --commit-dirty=true
     echo "==> push (for history; Cloudflare is not watching it)"
     git push origin main
     ;;
