@@ -6,12 +6,14 @@
     "build": "eleventy",
     "serve": "eleventy --serve",
     "check": "python3 ../mariko/scripts/blog_leakcheck.py .",
-    "publish": "./publish.sh"
+    "publish": "./publish.sh",
+    "deploy": "./publish.sh"
   },
   "devDependencies": {
     "@11ty/eleventy": "^3.0.0",
     "@11ty/eleventy-plugin-rss": "^2.0.2",
-    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0"
+    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
+    "wrangler": "^4.86.0"
   },
   "dependencies": {
     "markdown-it-anchor": "^10.0.0"

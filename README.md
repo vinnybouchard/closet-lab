@@ -65,6 +65,38 @@ the built output contains no third-party URLs at all.
 
 ## Cloudflare Pages
 
+Two ways to deploy, and they are not equivalent.
+
+### Direct upload (default, `DEPLOY_MODE=direct`)
+
+The tower builds and wrangler uploads `_site`. **Cloudflare never sees the repo** — only
+the built output, which has already passed the leak check. Nothing in the dashboard needs
+access to GitHub.
+
+One-time, in the Cloudflare dashboard:
+
+1. **Workers & Pages → Create → Pages → Upload assets**, name it `closet-lab`, and
+   upload anything (or nothing) just to create the project. Alternatively, once the token
+   below exists: `npx wrangler pages project create closet-lab --production-branch main`.
+2. **My Profile → API Tokens → Create Token → Custom token** with the single permission
+   **Account → Cloudflare Pages → Edit**. Nothing else.
+3. Copy the token and your **Account ID** (right-hand side of any dashboard page).
+
+Then add to `~/mariko/.env` — not to this repo:
+
+```
+CLOUDFLARE_API_TOKEN=...
+CLOUDFLARE_ACCOUNT_ID=...
+```
+
+`publish.sh` reads them from there, parsed as text and exported for the one command.
+
+### Git integration (`DEPLOY_MODE=git`)
+
+Connect the repo in the dashboard and Cloudflare builds on every push:
+
 - Build command: `npx @11ty/eleventy`
 - Output directory: `_site`
-- Node: 20+
+- Node: 20+ (set `NODE_VERSION=20` if the default is older)
+
+The cost is that Cloudflare gets **read access to the repository**, not just the output.
