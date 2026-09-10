@@ -4,15 +4,49 @@ An Eleventy blog, deployed on Cloudflare Pages.
 
 ## Write
 
+The posts are markdown files on the tower at `~/blog/src/posts/`. Reach them however you
+like:
+
+- **Over SMB** — `\\tower\vinny\blog\src\posts\` and open in any editor
+- **Over SSH** — `ssh tower` and edit in place
+
+There are **28 drafts already waiting**, one per course module, named `module-<unit>.md`.
+Each carries its own brief in front matter — the angle, the evidence to capture, the
+honest part, what to redact — taken from that module's `## Post` section. **None of them
+contains a word of prose written for you.** The body is empty on purpose.
+
+To write one:
+
+1. Open `src/posts/module-0.1.md`
+2. Write the body under the headings
+3. Set `date:` and `summary:`
+4. Delete `draft: true`
+5. `./publish.sh "the UPS post"`
+
+The `brief:` block is front matter, so it never renders and can be left in or deleted.
+
+Regenerate the queue after editing a module's brief:
+
 ```bash
-cp src/posts/_template.md "src/posts/$(date +%F)-slug.md"
+~/mariko/venv/bin/python ~/mariko/scripts/brief_to_drafts.py
 ```
+
+It **never touches a draft whose body you have written** — only the untouched ones are
+refreshed.
+
+For a post that is not a course module, `cp src/posts/_template.md
+"src/posts/$(date +%F)-slug.md"`.
 
 Front matter: `title`, `date`, `topic` (drives the filter strip and the topic pages),
 `summary`, optional `cover`, `series`, and `draft: true`.
 
 **`draft: true` means the page is not written at all** — not written-but-unlinked. An
 unlisted page is still a public URL.
+
+### One rule
+
+Edit on the tower, not in GitHub's web UI. `publish.sh` commits and pushes from here, so
+a web edit makes the two diverge and the next publish is rejected.
 
 ## Preview
 
