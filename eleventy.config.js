@@ -30,13 +30,18 @@ const topicSlug = (s) =>
 // 9th. No current entry crosses that line (the earliest is 05:xx UTC in CDT,
 // i.e. 00:xx local); the point is that one eventually will.
 const SITE_TZ = "America/Chicago";
+// Pinned, because Cloudflare builds this site and the tower does not. Month
+// names and the am/pm meridiem both come from the locale, so leaving it to
+// the build machine's ICU default makes the output depend on whose container
+// ran the build.
+const SITE_LOCALE = "en-US";
 
 const entryAt = (iso, fallback) => {
-  const dt = DateTime.fromISO(String(iso || ""), { zone: SITE_TZ });
+  const dt = DateTime.fromISO(String(iso || ""), { zone: SITE_TZ, locale: SITE_LOCALE });
   if (dt.isValid) return dt;
   // No instant: fall back to the calendar label, rendered as the label it is.
   return fallback instanceof Date
-    ? DateTime.fromJSDate(fallback, { zone: "utc" })
+    ? DateTime.fromJSDate(fallback, { zone: "utc", locale: SITE_LOCALE })
     : null;
 };
 const entryFormat = (fmt) => (iso, fallback) => {
@@ -142,7 +147,7 @@ export default function (eleventyConfig) {
   );
 
   eleventyConfig.addFilter("readable", (d) =>
-    DateTime.fromJSDate(d, { zone: "utc" }).toFormat("d LLLL yyyy"));
+    DateTime.fromJSDate(d, { zone: "utc", locale: SITE_LOCALE }).toFormat("d LLLL yyyy"));
   eleventyConfig.addFilter("iso", (d) =>
     DateTime.fromJSDate(d, { zone: "utc" }).toISO());
 
@@ -208,7 +213,16 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter("entryDate", entryFormat("d LLLL yyyy"));
   eleventyConfig.addFilter("entryDay", entryFormat("dd"));
   eleventyConfig.addFilter("entryMon", entryFormat("LLL"));
-  eleventyConfig.addFilter("entryTime", entryFormat("HH:mm"));
+  // 12-hour, the way a clock reads here: "12:27 am", "3:00 am" — no leading
+  // zero. luxon's `a` token renders "AM" in en-US, so the meridiem is lowercased
+  // for the journal list. The entry meta strip will still show it capitalised:
+  // that row is `text-transform:uppercase` by design and does the same to
+  // "written" and to the month name beside it.
+  eleventyConfig.addFilter("entryTime", (iso, fallback) => {
+    const dt = entryAt(iso, fallback);
+    if (!dt || !dt.isValid) return "";
+    return `${dt.toFormat("h:mm")} ${dt.toFormat("a").toLowerCase()}`;
+  });
   eleventyConfig.addFilter("entryZone", entryFormat("ZZZZ"));
   eleventyConfig.addFilter("entryIso", (iso, fallback) => {
     const dt = entryAt(iso, fallback);
@@ -235,7 +249,22 @@ export default function (eleventyConfig) {
 
   return {
     dir: { input: "src", includes: "_includes", output: "_site" },
-    markdownTemplateEngine: "njk",
+    // Markdown content is NOT pre-processed by Nunjucks. It could be — that is
+    // the Eleventy default and it lets a post body interpolate `{{ site.url }}`,
+    // loop over a collection or call a shortcode. Nothing here wants any of
+    // that (0 of 121 content files used it), and the cost is severe for this
+    // blog in particular: `{{` in prose is a FATAL BUILD ERROR, not text, and
+    // the subject matter is full of it — `docker ps --format '{{.Names}}'`,
+    // Ansible, Helm, Home Assistant, `${{ }}` in a GitHub Action. Worse, the
+    // build happens on Cloudflare after a push, so the failure surfaces as a red
+    // deploy in a log nobody opens rather than an error on the writer's screen;
+    // the symptom is "my post didn't show up". It is also a standing risk in the
+    // journal, which is Mariko's prose and is not proofread.
+    //
+    // Layouts are unaffected — every .njk file still has full Nunjucks. And this
+    // is per-file reversible: a post that genuinely wants template syntax sets
+    // `templateEngineOverride: njk,md` in its own front matter.
+    markdownTemplateEngine: false,
     htmlTemplateEngine: "njk",
   };
 }
