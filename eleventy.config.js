@@ -65,6 +65,24 @@ export default function (eleventyConfig) {
   );
 
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
+
+  // A photo written the natural way — ![caption](/assets/photo.jpg) — comes out
+  // of markdown as a bare <img> inside a <p>, which picks up none of
+  // `.prose figure`'s radius, shadow or caption. The design draws every in-body
+  // photo as a captioned figure, so a paragraph containing nothing but one image
+  // becomes one here. The alt text stays ON the img, because that is what a
+  // screen reader reads, and is ALSO printed as the caption, because that is
+  // what the design shows — the convention markdown-it-image-figures uses, done
+  // in ten lines rather than as a dependency. An image with empty alt gets a
+  // figure and no caption. An image with text beside it is inline and is left
+  // alone.
+  eleventyConfig.addTransform("figures", function (content) {
+    if (!String(this.page.outputPath || "").endsWith(".html")) return content;
+    return content.replace(/<p>(<img\s[^>]*>)<\/p>/g, (_whole, img) => {
+      const alt = (/\salt="([^"]*)"/.exec(img) || [, ""])[1];
+      return `<figure>${img}${alt ? `<figcaption>${alt}</figcaption>` : ""}</figure>`;
+    });
+  });
   eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });
 
   // The build FAILS if a page's layout depends on an inline style.

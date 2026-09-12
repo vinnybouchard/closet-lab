@@ -290,7 +290,12 @@ article .standfirst{font-size:18px;line-height:1.6;color:var(--color-neutral-300
   box-shadow:var(--shadow-sm);font-size:13px;line-height:1.6;overflow-x:auto;
   color:var(--color-neutral-300);font-family:var(--font-mono)}
 .prose pre code{background:none;padding:0;font-size:inherit}
-.prose figure{margin:4px 0;display:flex;flex-direction:column;gap:8px}
+/* The canvas lays the article out as a flex column with gap:20px, so its
+   `margin:4px 0` figure actually sits 24px clear top and bottom. .prose is
+   margin-based, where 4px bottom against a following paragraph's 0 top is
+   4px — the caption ended up jammed against the next line. 24px reproduces
+   the canvas on both edges (the top collapses with the previous 20px). */
+.prose figure{margin:24px 0;display:flex;flex-direction:column;gap:8px}
 .prose figure img{width:100%;border-radius:var(--radius-sm);box-shadow:var(--shadow-sm)}
 .prose figcaption{font-size:12px;color:var(--color-neutral-500);line-height:1.5}
 .prose table{width:100%;border-collapse:collapse;font-size:14px}
