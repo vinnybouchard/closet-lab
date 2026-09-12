@@ -2,6 +2,8 @@ import { DateTime } from "luxon";
 import rss from "@11ty/eleventy-plugin-rss";
 import syntax from "@11ty/eleventy-plugin-syntaxhighlight";
 import anchor from "markdown-it-anchor";
+import fs from "node:fs";
+import path from "node:path";
 
 // Shared by the counts filter and the topic pages, so a tab and its page
 // can never disagree about a slug.
@@ -31,6 +33,54 @@ export default function (eleventyConfig) {
 
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
   eleventyConfig.addPassthroughCopy({ "src/_headers": "_headers" });
+
+  // The build FAILS if a page's layout depends on an inline style.
+  //
+  // src/_headers ships `style-src 'self'`, so a browser DROPS every
+  // style="..." attribute on the page. Nothing local reproduces that: the built
+  // HTML contains the attribute, looking perfectly correct, and neither
+  // `eleventy --serve` nor a file:// open applies a _headers file. So the
+  // failure exists only on the deployed site, only in a real browser — which is
+  // how the live nav, both meta strips, the home page and the journal index
+  // spent twelve days collapsed into single columns.
+  //
+  // The check reads the policy it is enforcing instead of restating it: put
+  // 'unsafe-inline' in _headers and this turns itself off, rather than leaving
+  // behind a rule whose reason has quietly stopped being true.
+  eleventyConfig.on("eleventy.after", async ({ dir }) => {
+    const out = (dir && dir.output) || "_site";
+    let headers;
+    try {
+      headers = fs.readFileSync(path.join(out, "_headers"), "utf8");
+    } catch {
+      return; // no headers shipped, no policy to violate
+    }
+    const csp = /content-security-policy:([^\n]*)/i.exec(headers);
+    if (!csp) return;
+    const src = (/style-src ([^;]*)/i.exec(csp[1]) ||
+                 /default-src ([^;]*)/i.exec(csp[1]) || [, ""])[1];
+    if (src.includes("'unsafe-inline'")) return;
+
+    const offenders = [];
+    const walk = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.name.endsWith(".html")) {
+          const n = (fs.readFileSync(p, "utf8").match(/\sstyle="/g) || []).length;
+          if (n) offenders.push(`${p} (${n})`);
+        }
+      }
+    };
+    walk(out);
+    if (offenders.length) {
+      throw new Error(
+        `inline style attributes in the built output, which \`style-src ${src.trim()}\` ` +
+        `makes the browser drop:\n  ${offenders.join("\n  ")}\n` +
+        `Move them into src/assets/style.css as classes.`
+      );
+    }
+  });
 
   // Drafts never render. Not rendered-but-unlinked: an unlisted page is still a
   // public URL, and this flag exists to keep an unfinished thought off the internet.

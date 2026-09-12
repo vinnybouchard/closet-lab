@@ -21,7 +21,10 @@
     <span class="strap">{{ site.strap }}</span>
   </header>
 
-  <nav class="strip top-strip" style="grid-template-columns:repeat({{ site.nav | length }},minmax(0,1fr))">
+  {#- No style="grid-template-columns:..." here, however tempting: style-src is
+      'self', so the browser drops it and the strip collapses to one column.
+      .strip lays N equal columns out of grid-auto-flow instead. #}
+  <nav class="strip top-strip">
     {%- for item in site.nav %}
     <a href="{{ item.url }}"{% if page.url == item.url %} aria-current="page"{% endif %}>{{ item.text }}</a>
     {%- endfor %}
@@ -30,9 +33,9 @@
   {{ content | safe }}
 
   <footer class="bot">
-    <div aria-hidden="true" class="ghost" style="left:-8px;bottom:-70px;font-size:220px;white-space:nowrap">the closet</div>
+    <div aria-hidden="true" class="ghost foot">the closet</div>
     <div class="inner">
-      <div>
+      <div class="who">
         <div class="name">{{ site.title }}</div>
         <div class="note">written by a person, not a cert</div>
       </div>

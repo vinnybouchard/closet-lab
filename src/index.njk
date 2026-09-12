@@ -10,7 +10,7 @@ layout: base.njk
     <div class="art lighten"><img src="{{ site.heroImage }}" alt=""></div>
     {%- endif %}
     <div class="scrim"></div>
-    <div aria-hidden="true" class="ghost" style="left:-6px;bottom:-40px;font-size:200px">closet</div>
+    <div aria-hidden="true" class="ghost closet">closet</div>
     <div class="rail">
       <span class="t">{{ site.rails.left }}</span>
       <span class="line"></span>
@@ -24,7 +24,7 @@ layout: base.njk
 
   {%- set topics = posts | topicCounts %}
   {%- if topics | length %}
-  <nav class="strip bottom-strip" style="grid-template-columns:repeat({{ (topics | length) + 1 }},minmax(0,1fr))">
+  <nav class="strip bottom-strip">
     <a href="/" aria-current="page">All <span class="n">{{ posts | length }}</span></a>
     {%- for t in topics %}
     <a href="/tags/{{ t.slug }}/">{{ t.name }} <span class="n">{{ t.count }}</span></a>
@@ -33,39 +33,39 @@ layout: base.njk
   {%- endif %}
 
   {%- if latest %}
-  <section style="margin-top:28px;display:flex;flex-direction:column;border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-sm)">
-    <div style="position:relative;height:260px;background:var(--color-surface)">
+  <section class="feature">
+    <div class="lead{% if not latest.data.cover %} nophoto{% endif %}">
       {%- if latest.data.cover %}
-      <div class="art lighten" style="position:absolute;inset:0"><img src="{{ latest.data.cover }}" alt="" style="width:100%;height:100%;object-fit:cover"></div>
+      <div class="art lighten"><img src="{{ latest.data.cover }}" alt=""></div>
       {%- endif %}
-      <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to right,color-mix(in srgb,var(--color-bg) 80%,transparent),color-mix(in srgb,var(--color-bg) 30%,transparent) 60%,transparent)"></div>
-      <div style="position:absolute;left:36px;top:36px;right:36px;pointer-events:none;display:flex;flex-direction:column;gap:10px">
+      <div class="scrim"></div>
+      <div class="plate">
         <span class="kicker">Latest</span>
-        <h2 style="margin:0;font-family:var(--font-heading);font-weight:500;font-size:clamp(24px,3vw,34px);line-height:1.15;letter-spacing:-.015em;max-width:480px;color:var(--color-neutral-100);text-wrap:pretty">{{ latest.data.title }}</h2>
+        <h2>{{ latest.data.title }}</h2>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-      <div style="padding:32px 36px;background:var(--color-surface);display:flex;flex-direction:column;gap:14px;min-height:200px">
-        <span style="font-size:12px;color:var(--color-neutral-500)">{{ latest.date | readable }}{% if latest.data.topic %} · {{ latest.data.topic }}{% endif %}</span>
-        <p style="margin:0;font-size:14px;line-height:1.65;color:var(--color-neutral-300);text-wrap:pretty;flex:1">{{ latest.data.summary }}</p>
-        <a href="{{ latest.url }}" style="align-self:flex-start;font-size:11px;letter-spacing:.18em;text-transform:uppercase">Read the post →</a>
+    <div class="panels">
+      <div class="panel summary">
+        <span class="when">{{ latest.date | readable }}{% if latest.data.topic %} · {{ latest.data.topic }}{% endif %}</span>
+        <p>{{ latest.data.summary }}</p>
+        <a class="go" href="{{ latest.url }}">Read the post →</a>
       </div>
       {%- if site.stats %}
-      <div style="padding:32px 36px;background:var(--color-neutral-900);display:flex;flex-direction:column;gap:18px">
+      <div class="panel stats">
         {%- for s in site.stats %}
-        <div>
-          <div style="font-family:var(--font-heading);font-weight:500;font-size:30px;line-height:1;color:var(--color-neutral-100)">{{ s.n }}</div>
-          <div style="font-size:12px;color:var(--color-neutral-400)">{{ s.label }}</div>
+        <div class="stat">
+          <span class="n">{{ s.n }}</span>
+          <span class="label">{{ s.label }}</span>
         </div>
         {%- endfor %}
       </div>
       {%- endif %}
       {%- if site.nowList %}
-      <div style="padding:32px 36px;background:var(--color-section);display:flex;flex-direction:column;gap:14px">
-        <span style="font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--color-neutral-300)">Right now</span>
-        <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:13.5px;line-height:1.5;color:var(--color-neutral-100)">
+      <div class="panel now">
+        <span class="head">Right now</span>
+        <ul class="nowlist">
           {%- for item in site.nowList %}
-          <li style="display:flex;gap:10px"><span style="color:var(--color-accent-400);flex:none">—</span>{{ item }}</li>
+          <li><span class="dash">—</span>{{ item }}</li>
           {%- endfor %}
         </ul>
       </div>
@@ -74,8 +74,8 @@ layout: base.njk
   </section>
   {%- endif %}
 
-  <section style="position:relative;margin-top:80px;display:flex;flex-direction:column;gap:28px">
-    <div aria-hidden="true" class="ghost" style="right:-10px;top:-70px;font-size:160px">posts</div>
+  <section class="band">
+    <div aria-hidden="true" class="ghost posts">posts</div>
     <div class="sec-head"><h2>Posts</h2><span class="sub">newest first</span></div>
 
     {%- set feature = posts | slice_(0, 4) %}
@@ -95,7 +95,7 @@ layout: base.njk
       {%- endfor %}
     </div>
     {%- else %}
-    <p style="color:var(--color-neutral-500)">No posts yet.</p>
+    <p class="empty">No posts yet.</p>
     {%- endif %}
 
     {%- if older | length %}

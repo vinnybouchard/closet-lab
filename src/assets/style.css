@@ -2,6 +2,18 @@
    which builds on Nocturne. Translated from the canvas prototype's inline
    styles into real classes.
 
+   THE TRANSLATION HAS TO BE TOTAL, and for a reason that is invisible locally:
+   _headers ships `style-src 'self'` with no 'unsafe-inline', so the browser
+   DROPS every style="..." attribute on the page. The canvas prototype is
+   authored entirely in inline styles; anything left inline when it was ported
+   here does nothing in production. It still works in a local preview —
+   `eleventy --serve` does not apply _headers — so the failure appears only on
+   the deployed site, and only in a browser: curl'ing the HTML shows the
+   attribute sitting there looking perfectly correct. That cost the live site
+   its nav, its meta strips, its home page and its journal index for twelve
+   days. Hence tools/preview.py, which serves the built site WITH the real CSP,
+   and the inline-style check in tools/leakcheck.py.
+
    Fonts are SELF-HOSTED. Both the design and Nocturne itself pull Inter,
    Space Grotesk and IBM Plex Sans from fonts.googleapis.com; here they are
    served from this origin, so reading a page announces nothing to a third
@@ -30,6 +42,9 @@
   --shadow-sm:0 0 0 1px #353330;
   --shadow-md:0 0 0 1px #4c4a45,0 6px 18px rgba(0,0,0,.55);
   --wrap:1200px;
+  /* the fading rule, reused by the masthead spacer, .rule and every row top */
+  --fade-rule:linear-gradient(to right,transparent,var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px),transparent);
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -45,20 +60,23 @@ img{display:block;max-width:100%}
 .wrap{max-width:var(--wrap);margin:0 auto;padding:0 32px}
 
 /* Nocturne's signature: a freestanding rule fades out at both ends. */
-.rule{height:1px;background:linear-gradient(to right,transparent,
-  var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)}
+.rule{height:1px;background:var(--fade-rule)}
 .lighten{mix-blend-mode:lighten;background-color:transparent}
 
 /* — masthead — */
 .top{display:flex;align-items:center;gap:20px;padding:22px 0 18px;font-size:13px}
 .top .brand{color:var(--color-text);font-family:var(--font-heading);font-weight:500;
   font-size:15px;letter-spacing:.02em;white-space:nowrap}
-.top .spacer{flex:1;height:1px;background:linear-gradient(to right,transparent,
-  var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)}
+.top .spacer{flex:1;height:1px;background:var(--fade-rule)}
 .top .strap{color:var(--color-neutral-500);white-space:nowrap}
 
-/* — strips: the nav and the topic filter share one mechanism — */
-.strip{display:grid;background:var(--color-surface);box-shadow:var(--shadow-sm);overflow:hidden}
+/* — strips: the nav and the topic filter share one mechanism —
+   Columns come from grid-auto-flow, NOT an inline grid-template-columns written
+   per page: the nav has as many cells as site.nav has entries and the topic
+   strip as many as there are topics, and an inline style is exactly what the
+   CSP refuses to apply. Auto-flow sizes N equal columns for any N. */
+.strip{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);
+  background:var(--color-surface);box-shadow:var(--shadow-sm);overflow:hidden}
 .strip.top-strip{border-radius:var(--radius-sm) var(--radius-sm) 0 0}
 .strip.bottom-strip{border-radius:0 0 var(--radius-sm) var(--radius-sm)}
 .strip a,.strip span{display:flex;justify-content:center;align-items:center;gap:8px;
@@ -66,8 +84,11 @@ img{display:block;max-width:100%}
   color:var(--color-neutral-300);text-align:center}
 .strip>*+*{border-left:1px solid var(--color-divider)}
 .strip a:hover{background:var(--color-neutral-900);color:var(--color-neutral-100)}
-.strip a[aria-current="page"]{color:var(--color-neutral-100);background:var(--color-neutral-800)}
-.strip a[aria-current="page"]:hover{background:var(--color-neutral-700)}
+/* .here is the design's lit cell that is NOT the current page — the meta
+   strip's "← All posts", which the canvas draws highlighted. */
+.strip a[aria-current="page"],.strip a.here{color:var(--color-neutral-100);
+  background:var(--color-neutral-800)}
+.strip a[aria-current="page"]:hover,.strip a.here:hover{background:var(--color-neutral-700)}
 .strip .n{color:var(--color-neutral-500);letter-spacing:0}
 
 /* — hero — */
@@ -84,9 +105,13 @@ img{display:block;max-width:100%}
 .hero .art{position:absolute;inset:0}
 .hero .art img{width:100%;height:100%;object-fit:cover}
 .hero .scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,
-  color-mix(in srgb,var(--color-bg) 88%,transparent),
-  color-mix(in srgb,var(--color-bg) 28%,transparent) 48%,
-  color-mix(in srgb,var(--color-bg) 50%,transparent))}
+  color-mix(in srgb,var(--color-bg) 85%,transparent),
+  color-mix(in srgb,var(--color-bg) 25%,transparent) 45%,
+  color-mix(in srgb,var(--color-bg) 55%,transparent))}
+.hero.post .scrim{background:linear-gradient(to top,
+  color-mix(in srgb,var(--color-bg) 92%,transparent),
+  color-mix(in srgb,var(--color-bg) 30%,transparent) 55%,
+  color-mix(in srgb,var(--color-bg) 40%,transparent))}
 .hero .rail{position:absolute;left:28px;top:32px;bottom:32px;pointer-events:none;
   display:flex;flex-direction:column;justify-content:space-between;align-items:center}
 .hero .rail span.t{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10.5px;
@@ -94,7 +119,8 @@ img{display:block;max-width:100%}
 .hero .rail .line{width:1px;flex:1;margin:16px 0;
   background:linear-gradient(to bottom,transparent,var(--color-divider),transparent)}
 .hero .plate{position:absolute;left:80px;right:80px;bottom:44px;pointer-events:none;
-  display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+  display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+.hero.post .plate{bottom:40px;gap:14px}
 .hero h1{margin:0;font-family:var(--font-heading);font-weight:500;
   font-size:clamp(36px,6vw,72px);letter-spacing:.28em;text-transform:uppercase;
   line-height:1;color:var(--color-neutral-100)}
@@ -104,17 +130,67 @@ img{display:block;max-width:100%}
   color:var(--color-neutral-300);text-wrap:pretty}
 .kicker{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--color-accent)}
 
-/* the oversized watermark word */
+/* the oversized watermark word. One class per placement — the canvas positions
+   each by hand and there is no rule behind it worth deriving. */
 .ghost{position:absolute;pointer-events:none;user-select:none;font-family:var(--font-heading);
   font-weight:500;line-height:1;letter-spacing:-.04em;
+  color:color-mix(in srgb,var(--color-text) 4%,transparent)}
+.ghost.closet{left:-6px;bottom:-40px;font-size:200px;
   color:color-mix(in srgb,var(--color-text) 5%,transparent)}
+.ghost.posts{right:-10px;top:-70px;font-size:160px}
+.ghost.night{left:-6px;bottom:-56px;font-size:200px}
+.ghost.foot{left:-8px;bottom:-70px;font-size:220px;white-space:nowrap}
 
-/* — section headings — */
+/* — sections — */
+.band{position:relative;margin-top:80px;display:flex;flex-direction:column;gap:28px}
+.band.tight{margin-top:64px}
 .sec-head{display:flex;align-items:baseline;gap:14px;position:relative}
 .sec-head h2{margin:0;font-family:var(--font-heading);font-weight:500;font-size:18px;
   letter-spacing:.28em;text-transform:uppercase;color:var(--color-neutral-100)}
 .sec-head .sub{font-size:18px;letter-spacing:.28em;text-transform:uppercase;
   color:var(--color-neutral-600)}
+.empty{color:var(--color-neutral-500)}
+
+/* — the featured block under the topic strip — */
+.feature{margin-top:28px;display:flex;flex-direction:column;
+  border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-sm)}
+.feature .lead{position:relative;height:260px;background:var(--color-surface)}
+.feature .lead.nophoto{height:auto;padding:34px 36px 30px}
+.feature .lead.nophoto .scrim{display:none}
+.feature .lead.nophoto .plate{position:static;left:auto;right:auto;top:auto}
+.feature .art{position:absolute;inset:0}
+.feature .art img{width:100%;height:100%;object-fit:cover}
+.feature .scrim{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to right,color-mix(in srgb,var(--color-bg) 80%,transparent),
+  color-mix(in srgb,var(--color-bg) 30%,transparent) 60%,transparent)}
+.feature .plate{position:absolute;left:36px;top:36px;right:36px;pointer-events:none;
+  display:flex;flex-direction:column;gap:10px}
+.feature h2{margin:0;font-family:var(--font-heading);font-weight:500;
+  font-size:clamp(24px,3vw,34px);line-height:1.15;letter-spacing:-.015em;
+  max-width:480px;color:var(--color-neutral-100);text-wrap:pretty}
+.feature .panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.panel{padding:32px 36px;display:flex;flex-direction:column;gap:14px}
+.panel.summary{background:var(--color-surface);min-height:220px}
+/* 220px is the height of the canvas's THREE-panel row, where the stats
+   column is what makes it tall. Alone — no site.stats, no site.nowList —
+   it is just a summary floating in a box. */
+.feature .panels>.panel:only-child{min-height:0}
+.panel.stats{background:var(--color-neutral-900);gap:18px}
+.panel.now{background:var(--color-section)}
+.panel .when{font-size:12px;color:var(--color-neutral-500);letter-spacing:.02em}
+.panel p{margin:0;font-size:14px;line-height:1.65;color:var(--color-neutral-300);
+  text-wrap:pretty;flex:1}
+.panel .go{align-self:flex-start;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+.panel .head{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--color-neutral-300)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:var(--font-heading);font-weight:500;font-size:30px;line-height:1;
+  color:var(--color-neutral-100)}
+.stat .label{font-size:12px;color:var(--color-neutral-400)}
+.nowlist{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;
+  font-size:13.5px;line-height:1.5;color:var(--color-neutral-100)}
+.nowlist li{display:flex;gap:10px}
+.nowlist .dash{color:var(--color-accent-400);flex:none}
 
 /* — post cards — */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2px}
@@ -138,8 +214,7 @@ img{display:block;max-width:100%}
 .rows{display:flex;flex-direction:column;margin-top:16px}
 .rows a{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:24px;
   align-items:baseline;padding:18px 0;color:var(--color-text);
-  background:linear-gradient(to right,transparent,var(--color-divider) 48px,
-    var(--color-divider) calc(100% - 48px),transparent) no-repeat top/100% 1px}
+  background:var(--fade-rule) no-repeat top/100% 1px}
 .rows a:hover{color:var(--color-accent-400)}
 .rows .date{font-size:12px;color:var(--color-neutral-500)}
 .rows .title{font-family:var(--font-heading);font-weight:500;font-size:16px;
@@ -147,6 +222,50 @@ img{display:block;max-width:100%}
 .rows .topic{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
   color:var(--color-neutral-500)}
 .more{margin-top:22px;font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+
+/* — topic page head — */
+.tag-head{padding:56px 0 32px}
+.tag-head h1{margin:10px 0 0;font-family:var(--font-heading);font-weight:500;
+  font-size:clamp(30px,4vw,46px);letter-spacing:.06em;text-transform:uppercase;
+  color:var(--color-neutral-100)}
+.tag-head .count{margin:12px 0 0;color:var(--color-neutral-500)}
+
+/* — Mariko's journal: the index hero and its entry list — */
+.jhero{position:relative;overflow:hidden;background:var(--color-surface);
+  box-shadow:var(--shadow-sm);border-radius:0 0 var(--radius-sm) var(--radius-sm);
+  display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:2px}
+.jhero .body{position:relative;padding:72px 80px 64px;display:flex;
+  flex-direction:column;gap:22px;min-height:340px}
+.jhero h1{margin:0;font-family:var(--font-heading);font-weight:500;
+  font-size:clamp(32px,5vw,60px);letter-spacing:.22em;text-transform:uppercase;
+  line-height:1;color:var(--color-neutral-100)}
+.jhero .lede{margin:0;max-width:520px;font-size:15px;line-height:1.6;
+  color:var(--color-neutral-300);text-wrap:pretty}
+.jhero aside{position:relative;padding:40px 32px;background:var(--color-section);
+  display:flex;flex-direction:column;gap:18px;font-size:13px;line-height:1.5;
+  color:var(--color-neutral-100)}
+.jhero aside .head{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--color-neutral-300)}
+.facts{display:flex;flex-direction:column;gap:10px}
+.facts div{display:flex;justify-content:space-between;gap:12px}
+.facts .k{color:var(--color-neutral-400)}
+
+.entries{display:flex;flex-direction:column}
+.entry{display:grid;grid-template-columns:120px minmax(0,1fr);gap:32px;padding:32px 0;
+  background:var(--fade-rule) no-repeat top/100% 1px}
+.entry .when{display:flex;flex-direction:column;gap:4px;padding-top:4px}
+.entry .d{font-family:var(--font-heading);font-weight:500;font-size:34px;line-height:1;
+  color:var(--color-neutral-100)}
+.entry .m{font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--color-neutral-500)}
+.entry .t{font-size:11px;color:var(--color-neutral-600);margin-top:6px}
+.entry .body{display:flex;flex-direction:column;gap:10px;min-width:0;max-width:640px}
+.entry .h{color:var(--color-neutral-100);font-family:var(--font-heading);font-weight:500;
+  font-size:22px;line-height:1.25;letter-spacing:-.01em;text-wrap:pretty}
+.entry .h:hover{color:var(--color-accent-400)}
+.entry p{margin:0;font-size:14.5px;line-height:1.65;color:var(--color-neutral-300);
+  text-wrap:pretty}
+.entry .more{margin-top:4px}
 
 /* — article — */
 .article-grid{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:64px;
@@ -180,13 +299,16 @@ article .standfirst{font-size:18px;line-height:1.6;color:var(--color-neutral-300
 .prose th{color:var(--color-neutral-400);font-size:.86rem;font-weight:500;
   letter-spacing:.02em}
 .tablewrap{overflow-x:auto}
+.byline{margin:48px 0 0;font-size:12px;color:var(--color-neutral-600)}
 
 aside.rail{position:sticky;top:32px;display:flex;flex-direction:column;gap:32px;
   font-size:13.5px;line-height:1.6}
+aside.rail>div{display:flex;flex-direction:column;gap:10px}
 aside.rail .label{font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
   color:var(--color-neutral-500)}
-aside.rail a{color:var(--color-neutral-300);display:block;margin-top:8px}
+aside.rail a{color:var(--color-neutral-300);display:block}
 aside.rail a:hover{color:var(--color-accent-400)}
+aside.rail .note{margin:0;color:var(--color-neutral-300)}
 
 /* — prev / next — */
 .updown{margin:64px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px}
@@ -200,10 +322,10 @@ aside.rail a:hover{color:var(--color-accent-400)}
 
 /* — footer — */
 footer.bot{position:relative;margin-top:96px;padding:40px 0 48px;overflow:hidden;
-  background:linear-gradient(to right,transparent,var(--color-divider) 48px,
-    var(--color-divider) calc(100% - 48px),transparent) no-repeat top/100% 1px}
+  background:var(--fade-rule) no-repeat top/100% 1px}
 footer.bot .inner{position:relative;display:flex;justify-content:space-between;
   align-items:flex-end;gap:24px;flex-wrap:wrap}
+footer.bot .who{display:flex;flex-direction:column;gap:6px}
 footer.bot .name{font-family:var(--font-heading);font-weight:500;font-size:15px;
   letter-spacing:.02em}
 footer.bot .note{font-size:12px;color:var(--color-neutral-500)}
@@ -217,13 +339,23 @@ footer.bot nav a:hover{color:var(--color-accent-400)}
   .article-grid{grid-template-columns:minmax(0,1fr);gap:40px;padding:48px 0 0}
   aside.rail{position:static}
   .hero .plate{left:56px;right:32px}
+  .jhero{grid-template-columns:minmax(0,1fr)}
+  .jhero .body{padding:56px 36px 44px;min-height:0}
 }
 @media(max-width:720px){
-  .strip{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  /* auto-flow has to go back to rows before an explicit 2-column template can
+     wrap anything: in column flow the tracks are implicit, so a third cell
+     opens a third column instead of starting a second row. */
+  .strip{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr))}
   .strip>*{border-left:1px solid var(--color-divider);
     border-top:1px solid var(--color-divider)}
-  .hero.index{height:420px}
-  .hero.post{height:340px}
+  /* :not(.nophoto) is load-bearing, not tidiness. .hero.nophoto{height:auto}
+     and .hero.index{height:420px} have identical specificity, so the one
+     written LAST wins — and inside a media query that is this one. Without
+     the guard a photoless hero is forced back to a fixed height and opens a
+     420px hole under the tagline on every phone. */
+  .hero.index:not(.nophoto){height:420px}
+  .hero.post:not(.nophoto){height:340px}
   .hero .rail{display:none}
   .hero .plate{left:24px;right:24px;bottom:28px}
   .pcard{height:300px}
@@ -233,5 +365,14 @@ footer.bot nav a:hover{color:var(--color-accent-400)}
   .updown a.next{text-align:left}
   .ghost{display:none}
   .wrap{padding:0 18px}
+  .feature .plate{left:22px;right:22px;top:24px}
+  .panel{padding:26px 24px}
+  .jhero .body{padding:44px 24px 36px}
+  .jhero aside{padding:32px 24px}
+  .entry{grid-template-columns:minmax(0,1fr);gap:14px}
+  .entry .when{flex-direction:row;align-items:baseline;gap:10px;padding-top:0}
+  .entry .d{font-size:26px}
+  .entry .t{margin-top:0}
+  .tag-head{padding:40px 0 24px}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}

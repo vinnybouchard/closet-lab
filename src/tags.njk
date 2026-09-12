@@ -9,10 +9,10 @@ eleventyComputed:
   title: "{{ topic.name }}"
 ---
 <main>
-  <section style="padding:56px 0 32px">
+  <section class="tag-head">
     <span class="kicker">Topic</span>
-    <h1 style="margin:10px 0 0;font-family:var(--font-heading);font-weight:500;font-size:clamp(30px,4vw,46px);letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-100)">{{ topic.name }}</h1>
-    <p style="margin:12px 0 0;color:var(--color-neutral-500)">{{ topic.posts | length }} post{% if (topic.posts | length) != 1 %}s{% endif %}</p>
+    <h1>{{ topic.name }}</h1>
+    <p class="count">{{ topic.posts | length }} post{% if (topic.posts | length) != 1 %}s{% endif %}</p>
   </section>
   <div class="rule"></div>
   <div class="rows">

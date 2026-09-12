@@ -90,3 +90,26 @@ From the "Home Lab Learning Journey" Claude Design project, which builds on Noct
 here Space Grotesk and IBM Plex Sans are served from this origin, so reading a page
 announces nothing to a third party and the strict CSP in `src/_headers` holds. Verified:
 the built output contains no third-party URLs at all.
+
+**No inline styles — ever.** That same CSP says `style-src 'self'`, which means the
+browser throws away every `style="..."` attribute on the page. The design canvas is
+authored entirely in inline styles, so porting it here means porting *all* of it into
+`src/assets/style.css`. Anything left behind looks perfect in the built HTML, looks
+perfect in `eleventy --serve` (which does not apply `_headers`), and is dropped on the
+floor by the live site. That is not hypothetical: it is what flattened the nav, both meta
+strips, the home page and the journal index into single stacked columns between the first
+deploy and 11 September 2026.
+
+Two things now catch it:
+
+- **The build fails.** `eleventy.config.js` scans the built HTML on `eleventy.after` and
+  throws if a `style=` attribute survives, so Cloudflare's build refuses it too — no
+  matter how the push happened. It reads the CSP out of the built `_headers` first, so
+  adding `'unsafe-inline'` there turns the check off honestly rather than leaving a rule
+  with no reason behind it.
+- **`tools/preview.py`** serves `_site` locally with the real headers applied:
+
+      ./node_modules/.bin/eleventy && python3 tools/preview.py   # http://127.0.0.1:8787
+
+  Use it for anything that looks like layout. A local preview without the headers is not
+  a check — it is the one configuration in which the bug cannot appear.

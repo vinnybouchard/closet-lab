@@ -19,10 +19,10 @@ layout: base.njk
     </div>
   </section>
 
-  <div class="strip bottom-strip" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+  <div class="strip bottom-strip">
     <span><time datetime="{{ page.date | iso }}">{{ page.date | readable }}</time></span>
     <span>{{ content | readingTime }}</span>
-    <a href="/">← All posts</a>
+    <a class="here" href="/">← All posts</a>
   </div>
 
   <div class="article-grid">
@@ -41,7 +41,7 @@ layout: base.njk
       {%- if series %}
       <div>
         <span class="label">Series</span>
-        <p style="margin:8px 0 0;color:var(--color-neutral-300)">{{ series }}</p>
+        <p class="note">{{ series }}</p>
       </div>
       {%- endif %}
     </aside>
