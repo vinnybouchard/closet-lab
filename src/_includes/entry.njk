@@ -10,8 +10,8 @@ layout: base.njk
   </section>
 
   <div class="strip bottom-strip">
-    <span><time datetime="{{ page.date | iso }}">{{ page.date | readable }}</time></span>
-    <span>{% if written %}written {{ written | clock }} UTC{% else %}Lab note{% endif %}</span>
+    <span><time datetime="{{ written | entryIso(page.date) }}">{{ written | entryDate(page.date) }}</time></span>
+    <span>{% if written %}written {{ written | entryTime }} {{ written | entryZone }}{% else %}Lab note{% endif %}</span>
     <a class="here" href="/journal/">← All entries</a>
   </div>
 

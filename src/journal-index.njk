@@ -19,7 +19,7 @@ eleventyExcludeFromCollections: true
         <div><span class="k">Runs on</span><span>the tower in the closet</span></div>
         <div><span class="k">Entries</span><span>{{ entries | length }}</span></div>
         {%- if entries | length %}
-        <div><span class="k">Since</span><span>{{ (entries | last).date | readable }}</span></div>
+        <div><span class="k">Since</span><span>{% set first = entries | last %}{{ first.data.written | entryDate(first.date) }}</span></div>
         {%- endif %}
         <div><span class="k">Edited by me</span><span>never</span></div>
       </div>
@@ -32,9 +32,9 @@ eleventyExcludeFromCollections: true
       {%- for e in entries %}
       <article class="entry">
         <div class="when">
-          <span class="d">{{ e.date | day }}</span>
-          <span class="m">{{ e.date | mon }}</span>
-          {%- if e.data.written %}<span class="t">{{ e.data.written | clock }}</span>{% endif %}
+          <span class="d">{{ e.data.written | entryDay(e.date) }}</span>
+          <span class="m">{{ e.data.written | entryMon(e.date) }}</span>
+          {%- if e.data.written %}<span class="t">{{ e.data.written | entryTime }}</span>{% endif %}
         </div>
         <div class="body">
           <span class="kicker">{{ e.data.kicker }}</span>

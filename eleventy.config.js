@@ -11,6 +11,39 @@ const topicSlug = (s) =>
   String(s || "").toLowerCase().replace(/\+/g, "-plus").replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "") || "untagged";
 
+// Times on this site are the OWNER'S OWN — America/Chicago, which is CST or CDT
+// depending on the date, so the zone is named rather than the offset assumed.
+//
+// Two kinds of value are involved and conflating them is the trap:
+//
+//   * `written:` on a Lab Note is a real INSTANT — an ISO timestamp with an
+//     offset, e.g. 2026-09-08T08:00:47+00:00. Converting it is meaningful.
+//   * `date:` in front matter is a date-only CALENDAR LABEL. YAML parses
+//     `2026-09-08` as midnight UTC, so "converting" it to Chicago yields 19:00
+//     on the 7th and every post silently loses a day. It must be rendered
+//     exactly as written, in UTC. That is what `readable`/`iso` below do, and
+//     why they were not touched.
+//
+// An entry's date AND its time both come from the one instant, so they cannot
+// disagree — which they would the first winter night she writes at 05:30 UTC,
+// since that is 23:30 the PREVIOUS day in Chicago while `date:` still says the
+// 9th. No current entry crosses that line (the earliest is 05:xx UTC in CDT,
+// i.e. 00:xx local); the point is that one eventually will.
+const SITE_TZ = "America/Chicago";
+
+const entryAt = (iso, fallback) => {
+  const dt = DateTime.fromISO(String(iso || ""), { zone: SITE_TZ });
+  if (dt.isValid) return dt;
+  // No instant: fall back to the calendar label, rendered as the label it is.
+  return fallback instanceof Date
+    ? DateTime.fromJSDate(fallback, { zone: "utc" })
+    : null;
+};
+const entryFormat = (fmt) => (iso, fallback) => {
+  const dt = entryAt(iso, fallback);
+  return dt && dt.isValid ? dt.toFormat(fmt) : "";
+};
+
 export default function (eleventyConfig) {
   eleventyConfig.addPlugin(rss);
   // Highlighting happens AT BUILD TIME and ships as classes — no client-side
@@ -138,19 +171,31 @@ export default function (eleventyConfig) {
   // One page per topic, from the same source as the counts.
   // Mariko's Lab Notes, exported from her research notebook by
   // mariko/scripts/export_lab_notes.py. Newest first.
+  // Ordered by the instant she wrote, not by the front-matter label — otherwise
+  // an entry whose local date differs from its `date:` (see SITE_TZ above) would
+  // print out of sequence in a list sorted by something it no longer shows.
+  const journalMillis = (p) => {
+    const dt = DateTime.fromISO(String(p.data.written || ""), { zone: SITE_TZ });
+    return dt.isValid ? dt.toMillis() : p.date.getTime();
+  };
   eleventyConfig.addCollection("journal", (api) =>
     api.getFilteredByGlob("src/journal/*.md")
       .filter((p) => !p.data.draft)
-      .sort((a, b) => b.date - a.date)
+      .sort((a, b) => journalMillis(b) - journalMillis(a))
   );
 
-  eleventyConfig.addFilter("day", (d) =>
-    DateTime.fromJSDate(d, { zone: "utc" }).toFormat("dd"));
-  eleventyConfig.addFilter("mon", (d) =>
-    DateTime.fromJSDate(d, { zone: "utc" }).toFormat("LLL"));
-  // The time she actually wrote it, from the entry's own timestamp — not invented.
-  eleventyConfig.addFilter("clock", (iso) =>
-    iso ? DateTime.fromISO(iso, { zone: "utc" }).toFormat("HH:mm") : "");
+  // Lab Note renderers. Each takes the entry's `written` instant, with its
+  // front-matter `date` as the fallback for an entry that somehow lacks one.
+  // The time she actually wrote it comes from her own timestamp, not invented.
+  eleventyConfig.addFilter("entryDate", entryFormat("d LLLL yyyy"));
+  eleventyConfig.addFilter("entryDay", entryFormat("dd"));
+  eleventyConfig.addFilter("entryMon", entryFormat("LLL"));
+  eleventyConfig.addFilter("entryTime", entryFormat("HH:mm"));
+  eleventyConfig.addFilter("entryZone", entryFormat("ZZZZ"));
+  eleventyConfig.addFilter("entryIso", (iso, fallback) => {
+    const dt = entryAt(iso, fallback);
+    return dt && dt.isValid ? dt.toISO() : "";
+  });
   // First paragraph, for the list. Trimmed on a word boundary.
   eleventyConfig.addFilter("excerpt", (html, n) => {
     const first = String(html || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
